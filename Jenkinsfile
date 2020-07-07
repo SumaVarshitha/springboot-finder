@@ -1,42 +1,41 @@
 pipeline {
     agent any
- tools{
-    maven 'maven'
-    }
+   
+   
     stages {
-
-      stage('clean')
-            {
-                steps
-                 { 
-                    sh 'mvn clean install'
-                 }
-            }stage('SonarQube analysis') {
-       steps{
-        withSonarQubeEnv('SonarQube') {
-            sh 'mvn sonar:sonar -Pprofile1'
-           }
-       }
-   }
-      stage('SonarQube analysis'){ 
-         environment{
-               scannerHome = tool 'Sonar'
+		 
+        stage('build') {
+            
+		   agent {
+			   docker { image 'sumavarshitha/java-maven-node' }}
+		steps {
+			sh 'rm -rf assessmentdocker' 
+	        sh 'git clone https://github.com/SumaVarshitha/assessmentdocker.git'
+                sh "mvn clean package"
+            
+	    }
+        }
+        stage('SonarQube Analysis'){
+		 environment{
+               scannerHome = tool 'sonars'
                    }
-       steps{
-        withSonarQubeEnv('SonarQube') {
-           // sh "${scannerHome}/bin/sonar-scanner"
-           sh' mvn verify sonar:sonar'
-           }
-       }
-   }
-      /*  stage('deploy')
-              {
-                  steps
-                  {
-                      //deploy adapters: [tomcat9(credentialsId: '7bba93f5-d5bd-427e-b462-f3c552dad961', path: '', url: 'http://3.15.38.187:8090/')], contextPath: '/finder', war: '**/*.war'
-                      //deploy adapters: [tomcat9(credentialsId: '7bba93f5-d5bd-427e-b462-f3c552dad961', path: '', url: 'http://3.16.23.31:8090/')], contextPath: '/cur', war: '**/*.war'
-                  }  
-              } */
- 
-}
+            steps{
+               withSonarQubeEnv('sonar'){
+                    //sh '${sonarscanner}/bin/sonar-scanner -Dproject.settings=./sonar-project.properties'
+		       sh "${scannerHome}/bin/sonar-scanner"
+               //sh 'mvn sonr:sonar' 
+	       }
+            }
+        }
+
+    }
+        
+       stage("Quality Gate") {
+            steps {
+              timeout(time: 3, unit: 'MINUTES') {
+                waitForQualityGate abortPipeline: true
+              }
+            }
+        }
+       
 }

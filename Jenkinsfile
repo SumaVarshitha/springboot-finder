@@ -9,8 +9,8 @@ pipeline {
 		   agent {
 			   docker { image 'sumavarshitha/java-maven-node' }}
 		steps {
-			sh 'rm -rf assessmentdocker' 
-	        sh 'git clone https://github.com/SumaVarshitha/assessmentdocker.git'
+			sh 'rm -rf springboot-finder' 
+	        sh 'git clone https://github.com/SumaVarshitha/springboot-finder.git'
                 sh "mvn clean package"
             
 	    }
@@ -28,7 +28,7 @@ pipeline {
             }
         }
 
-    }
+    
         
        stage("Quality Gate") {
             steps {
@@ -37,5 +37,6 @@ pipeline {
               }
             }
         }
+    }
        
 }
